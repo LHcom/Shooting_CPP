@@ -3,6 +3,7 @@
 
 #include "MyPlayerPawn.h"
 
+#include "BulletActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 
@@ -64,6 +65,9 @@ void AMyPlayerPawn::SetupPlayerInputComponent ( UInputComponent* PlayerInputComp
 	// BindAxis (연결할 이벤트 이름, 연결할 함수가 있는 클래스, 연결할 함수의 주소값)
 	PlayerInputComponent->BindAxis ( TEXT ( "Horizontal" ) , this , &AMyPlayerPawn::OnAxisHorizontal );
 	PlayerInputComponent->BindAxis ( TEXT ( "Vertical" ) , this , &AMyPlayerPawn::OnAxisVertical );
+
+	// Fire함수 바인딩
+	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &AMyPlayerPawn::OnActionFire );
 }
 
 void AMyPlayerPawn::OnAxisHorizontal ( float value )
@@ -76,5 +80,16 @@ void AMyPlayerPawn::OnAxisVertical ( float value )
 {
 	v = value;
 	//GEngine->AddOnScreenDebugMessage ( -1 , 3.0f , FColor::Red , FString::Printf ( TEXT ( "V = %.2f" ) , v ) );
+}
+
+void AMyPlayerPawn::OnActionFire()
+{
+	// 마우스를 클릭하면 총알을 생성하고 싶다.
+
+	// ArrowComponent의 Transform 값을 가져온다.
+	FTransform FirePos = ArrowComp->GetComponentTransform ( );
+
+	// FirePos 정보로 ABulletActor를 생성한다.
+	GetWorld()->SpawnActor<ABulletActor>( BulletFactory , FirePos );
 }
 

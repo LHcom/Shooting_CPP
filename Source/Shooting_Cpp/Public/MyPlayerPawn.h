@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "MyPlayerPawn.generated.h"
 
+class ABulletActor;
 class UBoxComponent;
 class UArrowComponent;
 
@@ -52,4 +53,12 @@ public:
 
 	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
 	float Speed = 500.0f; // 플레이어 이동 속도
+
+	// 총알을 발사할 때 사용할 함수
+	UFUNCTION()
+	void OnActionFire();
+
+	// 총알 클래스 원형을 저장할 변수
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ABulletActor> BulletFactory; // UClass
 };

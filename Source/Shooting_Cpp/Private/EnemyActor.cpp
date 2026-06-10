@@ -1,14 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BulletActor.h"
+#include "EnemyActor.h"
 
 #include "Components/BoxComponent.h"
 
 // Sets default values
-ABulletActor::ABulletActor ( )
+AEnemyActor::AEnemyActor()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 충돌체 컴포넌트를 추가해서 Root 컴포넌트로 설정
@@ -28,27 +28,39 @@ ABulletActor::ABulletActor ( )
 	// 에셋 로드가 성공했으면?
 	if (tempMesh.Succeeded ( ))
 		MeshComp->SetStaticMesh ( tempMesh.Object );
-
-	// (X=0.750000,Y=0.250000,Z=1.000000)
-	BoxComp->SetRelativeScale3D ( FVector ( 0.75f , 0.25f , 1.0f ) );
 }
 
 // Called when the game starts or when spawned
-void ABulletActor::BeginPlay ( )
+void AEnemyActor::BeginPlay()
 {
-	Super::BeginPlay ( );
+	Super::BeginPlay();
+	
+	// 기본으로 이동할 방향을 앞 방향으로 세팅
+	Dir = GetActorForwardVector();
 
+	// 1부터 100 사이의 정수 랜덤 값을 만든다
+	int32 rndNum = FMath::RandRange(1, 100);
+
+	// 만약, 랜덤 값이 RandomRate 이하라면 플레이어 방향으로 Dir을 세팅
+	if (rndNum <= RandomRate)
+	{
+		// 현재 플레이어
+		if (APawn* Target = GetWorld()->GetFirstPlayerController()->GetPawn())
+		{
+			if (IsValid(Target))
+			{
+				Dir = (Target->GetActorLocation() - this->GetActorLocation()).GetSafeNormal();		
+			}
+		}
+	}
 }
 
 // Called every frame
-void ABulletActor::Tick ( float DeltaTime )
+void AEnemyActor::Tick(float DeltaTime)
 {
-	Super::Tick ( DeltaTime );
+	Super::Tick(DeltaTime);
 
 	// p = p0 + vt
-	FVector p0 = GetActorLocation ( );
-	FVector velocity = GetActorForwardVector ( ) * Speed; // GetActorForwardVector = 앞 방향 X축 (Speed, 0, 0) xyz
-	FVector p = p0 + velocity * DeltaTime; 
+	FVector p = GetActorLocation() + Dir * Speed * DeltaTime;
 	SetActorLocation(p);
 }
-
