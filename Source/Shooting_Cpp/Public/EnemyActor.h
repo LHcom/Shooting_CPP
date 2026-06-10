@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "BulletActor.generated.h"
+#include "EnemyActor.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class SHOOTING_CPP_API ABulletActor : public AActor
+class SHOOTING_CPP_API AEnemyActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ABulletActor();
+	AEnemyActor();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,6 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+	// 충돌체 컴포넌트를 추가해서 Root 컴포넌트로 설정
 	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Comp" )
 	UBoxComponent* BoxComp;
 	// 메시 컴포넌트를 추가해서 Root 컴포넌트에 Attach
@@ -33,5 +34,9 @@ public:
 	UStaticMeshComponent* MeshComp;
 
 	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
-	float Speed = 800.0f; // 총알 이동 속도
+	float Speed = 600.0f;
+	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
+	FVector Dir;
+	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
+	int32 RandomRate = 30;
 };
