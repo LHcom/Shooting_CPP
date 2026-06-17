@@ -3,12 +3,13 @@
 
 #include "EnemyActor.h"
 
+#include "MyPlayerPawn.h"
 #include "Components/BoxComponent.h"
 
 // Sets default values
-AEnemyActor::AEnemyActor()
+AEnemyActor::AEnemyActor ( )
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 충돌체 컴포넌트를 추가해서 Root 컴포넌트로 설정
@@ -28,39 +29,57 @@ AEnemyActor::AEnemyActor()
 	// 에셋 로드가 성공했으면?
 	if (tempMesh.Succeeded ( ))
 		MeshComp->SetStaticMesh ( tempMesh.Object );
+
+	// MeshComp 충돌 비활성화
+	MeshComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
+
+	// Collision Preset을 Enemy 프리셋으로 설정
+	BoxComp->SetCollisionProfileName(FName("Enemy"));
+
+	BoxComp->OnComponentBeginOverlap.AddDynamic ( this , &AEnemyActor::OnEnemyOverlap );
 }
 
 // Called when the game starts or when spawned
-void AEnemyActor::BeginPlay()
+void AEnemyActor::BeginPlay ( )
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay ( );
+
 	// 기본으로 이동할 방향을 앞 방향으로 세팅
-	Dir = GetActorForwardVector();
+	Dir = GetActorForwardVector ( );
 
 	// 1부터 100 사이의 정수 랜덤 값을 만든다
-	int32 rndNum = FMath::RandRange(1, 100);
+	int32 rndNum = FMath::RandRange ( 1 , 100 );
 
 	// 만약, 랜덤 값이 RandomRate 이하라면 플레이어 방향으로 Dir을 세팅
 	if (rndNum <= RandomRate)
 	{
 		// 현재 플레이어
-		if (APawn* Target = GetWorld()->GetFirstPlayerController()->GetPawn())
+		if (APawn* Target = GetWorld ( )->GetFirstPlayerController ( )->GetPawn ( ))
 		{
-			if (IsValid(Target))
+			if (IsValid ( Target ))
 			{
-				Dir = (Target->GetActorLocation() - this->GetActorLocation()).GetSafeNormal();		
+				Dir = ( Target->GetActorLocation ( ) - this->GetActorLocation ( ) ).GetSafeNormal ( );
 			}
 		}
 	}
 }
 
 // Called every frame
-void AEnemyActor::Tick(float DeltaTime)
+void AEnemyActor::Tick ( float DeltaTime )
 {
-	Super::Tick(DeltaTime);
+	Super::Tick ( DeltaTime );
 
 	// p = p0 + vt
-	FVector p = GetActorLocation() + Dir * Speed * DeltaTime;
-	SetActorLocation(p);
+	FVector p = GetActorLocation ( ) + Dir * Speed * DeltaTime;
+	SetActorLocation ( p );
+}
+
+void AEnemyActor::OnEnemyOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (AMyPlayerPawn* player = Cast<AMyPlayerPawn>( OtherActor ))
+	{
+		player->Destroy();
+		Destroy();
+	}
 }
