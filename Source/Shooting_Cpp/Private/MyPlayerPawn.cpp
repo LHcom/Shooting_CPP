@@ -29,6 +29,21 @@ AMyPlayerPawn::AMyPlayerPawn ( )
 	// Root 컴포넌트에 Attach
 	ArrowComp->SetupAttachment ( BoxComp );
 	ArrowComp->SetRelativeLocationAndRotation ( FVector ( 0 , 0 , 100 ) , FRotator ( 90 , 0 , 0 ) );
+
+	// MeshComp의 콜리전 비활성화
+	MeshComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
+
+	// 오버랩 이벤트 활성화
+	BoxComp->SetGenerateOverlapEvents ( true );
+	// 충돌 응답을 Query and Physics로 설정
+	BoxComp->SetCollisionEnabled ( ECollisionEnabled::QueryAndPhysics );
+	// Object Type을 Player로 설정
+	BoxComp->SetCollisionObjectType ( ECC_GameTraceChannel1 );
+
+	// 모든 채널을 Ignore로 설정
+	BoxComp->SetCollisionResponseToAllChannels ( ECollisionResponse::ECR_Ignore );
+	// Enemy 충돌을 Overlap으로 설정
+	BoxComp->SetCollisionResponseToChannel ( ECC_GameTraceChannel3 , ECollisionResponse::ECR_Overlap );
 }
 
 // Called when the game starts or when spawned
@@ -47,14 +62,14 @@ void AMyPlayerPawn::Tick ( float DeltaTime )
 	// P = P0 + v(방향 * 속도)t
 
 	// 방향
-	FVector dir = FVector(0, h, v);
+	FVector dir = FVector ( 0 , h , v );
 	// dir의 길이를 1로 만들고 싶다.
-	dir.Normalize();
+	dir.Normalize ( );
 	// 등속 운동
 	FVector p0 = GetActorLocation ( );
 	FVector velocity = dir * Speed;
 	FVector p = p0 + velocity * DeltaTime;
-	SetActorLocation(p);
+	SetActorLocation ( p );
 }
 
 // Called to bind functionality to input
@@ -67,7 +82,7 @@ void AMyPlayerPawn::SetupPlayerInputComponent ( UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAxis ( TEXT ( "Vertical" ) , this , &AMyPlayerPawn::OnAxisVertical );
 
 	// Fire함수 바인딩
-	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &AMyPlayerPawn::OnActionFire );
+	PlayerInputComponent->BindAction ( TEXT ( "Fire" ) , IE_Pressed , this , &AMyPlayerPawn::OnActionFire );
 }
 
 void AMyPlayerPawn::OnAxisHorizontal ( float value )
@@ -82,7 +97,7 @@ void AMyPlayerPawn::OnAxisVertical ( float value )
 	//GEngine->AddOnScreenDebugMessage ( -1 , 3.0f , FColor::Red , FString::Printf ( TEXT ( "V = %.2f" ) , v ) );
 }
 
-void AMyPlayerPawn::OnActionFire()
+void AMyPlayerPawn::OnActionFire ( )
 {
 	// 마우스를 클릭하면 총알을 생성하고 싶다.
 
@@ -90,6 +105,6 @@ void AMyPlayerPawn::OnActionFire()
 	FTransform FirePos = ArrowComp->GetComponentTransform ( );
 
 	// FirePos 정보로 ABulletActor를 생성한다.
-	GetWorld()->SpawnActor<ABulletActor>( BulletFactory , FirePos );
+	GetWorld ( )->SpawnActor<ABulletActor> ( BulletFactory , FirePos );
 }
 

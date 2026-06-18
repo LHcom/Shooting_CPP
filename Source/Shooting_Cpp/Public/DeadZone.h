@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "EnemyActor.generated.h"
+#include "DeadZone.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class SHOOTING_CPP_API AEnemyActor : public AActor
+class SHOOTING_CPP_API ADeadZone : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AEnemyActor();
+	ADeadZone();
 
 protected:
 	// Called when the game starts or when spawned
@@ -33,18 +33,11 @@ public:
 	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Comp" )
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
-	float Speed = 600.0f;
-	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
-	FVector Dir;
-	UPROPERTY ( EditAnywhere , BlueprintReadWrite , Category = "Default|Move" )
-	int32 RandomRate = 30;
-
 	UFUNCTION ( )
-	void OnEnemyOverlap ( UPrimitiveComponent* OverlappedComponent ,
-						AActor* OtherActor ,
-						UPrimitiveComponent* OtherComp ,
-						int32 OtherBodyIndex ,
-						bool bFromSweep ,
-						const FHitResult& SweepResult );
+	void OnDeadZoneOverlap ( UPrimitiveComponent* OverlappedComponent ,
+		AActor* OtherActor ,
+		UPrimitiveComponent* OtherComp ,
+		int32 OtherBodyIndex ,
+		bool bFromSweep ,
+		const FHitResult& SweepResult );
 };

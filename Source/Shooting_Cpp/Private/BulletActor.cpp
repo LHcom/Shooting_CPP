@@ -3,7 +3,9 @@
 
 #include "BulletActor.h"
 
+#include "EnemyActor.h"
 #include "Components/BoxComponent.h"
+#include "ShootingGameMode.h"
 
 // Sets default values
 ABulletActor::ABulletActor ( )
@@ -31,6 +33,14 @@ ABulletActor::ABulletActor ( )
 
 	// (X=0.750000,Y=0.250000,Z=1.000000)
 	BoxComp->SetRelativeScale3D ( FVector ( 0.75f , 0.25f , 1.0f ) );
+
+	// MeshComp 충돌 비활성화
+	MeshComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
+
+	// Collision Preset을 Bullet 프리셋으로 설정
+	BoxComp->SetCollisionProfileName ( FName ( "Bullet" ) );
+
+	BoxComp->OnComponentBeginOverlap.AddDynamic ( this , &ABulletActor::OnBulletOverlap );
 }
 
 // Called when the game starts or when spawned
@@ -48,7 +58,31 @@ void ABulletActor::Tick ( float DeltaTime )
 	// p = p0 + vt
 	FVector p0 = GetActorLocation ( );
 	FVector velocity = GetActorForwardVector ( ) * Speed; // GetActorForwardVector = 앞 방향 X축 (Speed, 0, 0) xyz
-	FVector p = p0 + velocity * DeltaTime; 
-	SetActorLocation(p);
+	FVector p = p0 + velocity * DeltaTime;
+	SetActorLocation ( p );
+}
+
+void ABulletActor::OnBulletOverlap ( UPrimitiveComponent* OverlappedComponent , AActor* OtherActor ,
+	UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult )
+{
+	// 충돌한 액터를 AEnemyActor 클래스로 변환한다.
+	AEnemyActor* enemy = Cast<AEnemyActor> ( OtherActor );
+
+	// 캐스팅이 성공해서 enemy 에 값이 있다면
+	if (enemy != nullptr)
+	{
+		// 게임모드를 가져온다
+		AGameModeBase* currentMode = GetWorld()->GetAuthGameMode();
+		// 가져온 게임모드를 AShootingGameMode로 변환
+		AShootingGameMode* shootingGameMode = Cast<AShootingGameMode>(currentMode);
+		if (shootingGameMode)
+			shootingGameMode->AddScore(1);
+
+		// 충돌한 액터를 제거한다.
+		enemy->Destroy ( );
+
+		// 자기 자신도 제거한다.
+		Destroy ( );
+	}
 }
 
