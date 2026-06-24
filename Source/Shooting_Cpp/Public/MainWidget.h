@@ -6,12 +6,32 @@
 #include "Blueprint/UserWidget.h"
 #include "MainWidget.generated.h"
 
+class UProgressBar;
+class UTextBlock;
+
 /**
- * 
+ *
  */
-UCLASS()
+UCLASS ( )
 class SHOOTING_CPP_API UMainWidget : public UUserWidget
 {
-	GENERATED_BODY()
-	
+	GENERATED_BODY ( )
+
+protected:
+	virtual void NativeConstruct ( ) override;
+
+public:
+	UPROPERTY ( EditAnywhere , meta = ( BindWidget ) )
+	UTextBlock* TxtScore;
+
+	UPROPERTY ( EditAnywhere , meta = ( BindWidget ) )
+	UTextBlock* TxtHighScore;
+
+	void SetScore ( int32 NewScore );
+	void SetHighScore ( int32 NewScore );
+
+	UPROPERTY(EditAnywhere, meta=(BindWidget))
+	UProgressBar* HpBar;
+
+	void SetHP(float curHp, float maxHp);
 };
