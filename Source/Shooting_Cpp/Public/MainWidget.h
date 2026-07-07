@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MainWidget.generated.h"
 
+class UGameOverWidget;
 class UProgressBar;
 class UTextBlock;
 
@@ -34,4 +35,9 @@ public:
 	UProgressBar* HpBar;
 
 	void SetHP(float curHp, float maxHp);
+
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	UGameOverWidget* GameOverWidget;
+
+	void ShowGameOver(bool bShow);
 };

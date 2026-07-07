@@ -86,3 +86,31 @@ void AShootingGameMode::LoadGameData()
 	// ShootingSaveGame 객체에세 HighScoreSave값을 읽어서 HighScore로 갱신
 	HighScore = sg->HighScoreSave;
 }
+
+void AShootingGameMode::SetHP(float curHP, float maxHP)
+{
+	if (!MainUI) return;
+	MainUI->SetHP(curHP, maxHP);
+}
+
+void AShootingGameMode::ShowGameOver(bool bShow)
+{
+	if (!MainUI) return;
+
+	// 게임을 bShow 값에 따라 일시정지 상태로 만든다.
+	UGameplayStatics::SetGamePaused(GetWorld(), bShow);
+	// 플레이어 컨트롤러를 가져와서
+	APlayerController* pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		// 마우스 커서를 bShow 값에 따라 숨기거나 보여준다.
+		pc->SetShowMouseCursor(bShow);
+		// Input Mode를 bShow 값에 따라 GameOnly 또는 UIOnly로 설정한다.
+		if (bShow)
+			pc->SetInputMode(FInputModeUIOnly());
+		else
+			pc->SetInputMode(FInputModeGameOnly());
+	}
+
+	MainUI->ShowGameOver(bShow);
+}

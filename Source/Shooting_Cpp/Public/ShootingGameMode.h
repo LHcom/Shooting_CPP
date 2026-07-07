@@ -44,4 +44,8 @@ public:
 
 	void SaveGameData();
 	void LoadGameData();
+
+	void SetHP ( float curHP , float maxHP );
+
+	void ShowGameOver(bool bShow);
 };

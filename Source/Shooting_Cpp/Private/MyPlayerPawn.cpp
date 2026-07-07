@@ -4,8 +4,10 @@
 #include "MyPlayerPawn.h"
 
 #include "BulletActor.h"
+#include "ShootingGameMode.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyPlayerPawn::AMyPlayerPawn ( )
@@ -51,6 +53,23 @@ void AMyPlayerPawn::BeginPlay ( )
 {
 	Super::BeginPlay ( );
 
+	HP = MaxHP;
+
+	GM = Cast<AShootingGameMode> ( GetWorld ( )->GetAuthGameMode ( ) );
+	if (GM)
+	{
+		GM->SetHP ( HP , MaxHP );
+		GM->ShowGameOver(false);
+	}
+
+	//// 게임을 진행 상태로 만든다.
+	//UGameplayStatics::SetGamePaused ( GetWorld ( ) , false );
+	//APlayerController* pc = GetWorld()->GetFirstPlayerController();
+	//if (pc)
+	//{
+	//	pc->SetShowMouseCursor ( false ); // 마우스 커서를 숨긴다.
+	//	pc->SetInputMode(FInputModeGameOnly()); // Input Mode 설정
+	//}
 }
 
 // Called every frame
@@ -106,5 +125,15 @@ void AMyPlayerPawn::OnActionFire ( )
 
 	// FirePos 정보로 ABulletActor를 생성한다.
 	GetWorld ( )->SpawnActor<ABulletActor> ( BulletFactory , FirePos );
+}
+
+void AMyPlayerPawn::SetDamage ( int32 damage )
+{
+	HP -= damage;
+	if (GM)
+	{
+		// HpBar 갱신
+		GM->SetHP ( HP , MaxHP );
+	}
 }
 

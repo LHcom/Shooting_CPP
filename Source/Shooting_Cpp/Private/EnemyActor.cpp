@@ -4,7 +4,9 @@
 #include "EnemyActor.h"
 
 #include "MyPlayerPawn.h"
+#include "ShootingGameMode.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AEnemyActor::AEnemyActor ( )
@@ -34,7 +36,7 @@ AEnemyActor::AEnemyActor ( )
 	MeshComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
 
 	// Collision Preset을 Enemy 프리셋으로 설정
-	BoxComp->SetCollisionProfileName(FName("Enemy"));
+	BoxComp->SetCollisionProfileName ( FName ( "Enemy" ) );
 
 	BoxComp->OnComponentBeginOverlap.AddDynamic ( this , &AEnemyActor::OnEnemyOverlap );
 }
@@ -74,12 +76,38 @@ void AEnemyActor::Tick ( float DeltaTime )
 	SetActorLocation ( p );
 }
 
-void AEnemyActor::OnEnemyOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AEnemyActor::OnEnemyOverlap ( UPrimitiveComponent* OverlappedComponent , AActor* OtherActor ,
+	UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult )
 {
-	if (AMyPlayerPawn* player = Cast<AMyPlayerPawn>( OtherActor ))
+	if (AMyPlayerPawn* player = Cast<AMyPlayerPawn> ( OtherActor ))
 	{
-		player->Destroy();
-		Destroy();
+		// 플레이어 체력을 1 감소시킨다.
+		player->SetDamage ( 1 );
+
+		// 플레이어가 사망했다면
+		if (player->HP <= 0)
+		{
+			// 플레이어를 제거한다.
+			player->Destroy ( );
+
+			// 현재 게임모드를 가져온다.
+			AShootingGameMode* currentGameMode = Cast<AShootingGameMode> ( GetWorld ( )->GetAuthGameMode ( ) );
+			if (currentGameMode)
+			{
+				//// 게임을 일시 정지 상태로 만든다.
+				//UGameplayStatics::SetGamePaused ( GetWorld ( ) , true );
+				//APlayerController* pc = GetWorld ( )->GetFirstPlayerController ( );
+				//if (pc)
+				//{
+				//	pc->SetShowMouseCursor ( true ); // 마우스 커서를 보여준다.
+				//	pc->SetInputMode(FInputModeUIOnly()); // Input Mode 설정
+				//}
+
+				// GameOverWidget을 보여준다.
+				currentGameMode->ShowGameOver ( true );
+			}
+		}
+
+		Destroy ( );
 	}
 }

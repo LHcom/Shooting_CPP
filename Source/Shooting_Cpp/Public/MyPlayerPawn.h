@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "MyPlayerPawn.generated.h"
 
+class AShootingGameMode;
 class ABulletActor;
 class UBoxComponent;
 class UArrowComponent;
@@ -61,4 +62,15 @@ public:
 	// 총알 클래스 원형을 저장할 변수
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABulletActor> BulletFactory; // UClass
+
+	// 최대 체력 / 현재 체력
+	float HP;
+
+	UPROPERTY ( EditAnywhere , BlueprintReadWrite )
+	float MaxHP = 2.0f;
+
+	void SetDamage(int32 damage);
+
+	UPROPERTY()
+	AShootingGameMode* GM;
 };
