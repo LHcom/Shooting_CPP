@@ -26,8 +26,11 @@ AEnemyActor::AEnemyActor ( )
 	// Root 컴포넌트에 Attach
 	MeshComp->SetupAttachment ( BoxComp );
 
+	MeshComp->SetRelativeLocationAndRotation(FVector(-10,0,-10), FRotator(180, 90,90));
+	MeshComp->SetRelativeScale3D(FVector(7));
+
 	// 생성자 도우미를 이용해서 에셋을 로드하고 싶다.
-	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh ( TEXT ( "/Script/Engine.StaticMesh'/Engine/BasicShapes/Cube.Cube'" ) );
+	ConstructorHelpers::FObjectFinder<UStaticMesh> tempMesh ( TEXT ( "/Script/Engine.StaticMesh'/Game/Modeling/Enemy/plane.plane'" ) );
 	// 에셋 로드가 성공했으면?
 	if (tempMesh.Succeeded ( ))
 		MeshComp->SetStaticMesh ( tempMesh.Object );

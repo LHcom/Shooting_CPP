@@ -73,4 +73,31 @@ public:
 
 	UPROPERTY()
 	AShootingGameMode* GM;
+
+	UPROPERTY(EditAnywhere, Category = "Default|Sound")
+	USoundBase* FireSound;
+
+	// 총알을 오브젝트 풀 처리하고 싶다.
+	// [필요 요소]
+	// 최초 생성할 총알 개수
+	UPROPERTY(EditAnywhere, Category = "Default|Pool")
+	int32 MaxBulletCount = 20;
+
+	// 총알 목록
+	UPROPERTY(EditAnywhere, Category = "Default|Pool")
+	TArray<ABulletActor*> Magazine; 
+
+	void SetBulletTransform();
+
+	bool AutoFire = false;
+	float CurrentTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Default|Fire")
+	float FireTime = 0.2f;
+
+	UFUNCTION()
+	void OnActionAutoFire();
+
+	UFUNCTION()
+	void OnActionAutoFire_Hold();
 };

@@ -6,6 +6,7 @@
 #include "EnemyActor.h"
 #include "Components/BoxComponent.h"
 #include "ShootingGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABulletActor::ABulletActor ( )
@@ -72,17 +73,35 @@ void ABulletActor::OnBulletOverlap ( UPrimitiveComponent* OverlappedComponent , 
 	if (enemy != nullptr)
 	{
 		// 게임모드를 가져온다
-		AGameModeBase* currentMode = GetWorld()->GetAuthGameMode();
+		AGameModeBase* currentMode = GetWorld ( )->GetAuthGameMode ( );
 		// 가져온 게임모드를 AShootingGameMode로 변환
-		AShootingGameMode* shootingGameMode = Cast<AShootingGameMode>(currentMode);
+		AShootingGameMode* shootingGameMode = Cast<AShootingGameMode> ( currentMode );
 		if (shootingGameMode)
-			shootingGameMode->AddScore(1);
+			shootingGameMode->AddScore ( 1 );
 
 		// 충돌한 액터를 제거한다.
 		enemy->Destroy ( );
 
+		// 사운드 재생
+		UGameplayStatics::SpawnSound2D ( GetWorld ( ) , EnemyDestroySound );
+
+		// 이펙트 재생
+		UGameplayStatics::SpawnEmitterAtLocation ( GetWorld ( ) , EnemyDestroyEffect , enemy->GetActorLocation ( ) );
+
 		// 자기 자신도 제거한다.
-		Destroy ( );
+		//Destroy ( );
+
+		SetActive ( false );
 	}
+}
+
+void ABulletActor::SetActive ( bool isActive )
+{
+	MeshComp->SetVisibility ( isActive );
+
+	if (isActive)
+		BoxComp->SetCollisionEnabled ( ECollisionEnabled::QueryAndPhysics );
+	else
+		BoxComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
 }
 

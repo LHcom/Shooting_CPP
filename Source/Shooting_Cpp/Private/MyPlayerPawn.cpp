@@ -7,6 +7,7 @@
 #include "ShootingGameMode.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -35,6 +36,21 @@ AMyPlayerPawn::AMyPlayerPawn ( )
 	// MeshComp의 콜리전 비활성화
 	MeshComp->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
 
+	// MeshCompo의 Transform 설정
+	//// 1
+	//MeshComp->SetRelativeLocation ( FVector ( -130 , 0 , 20 ) );
+	//MeshComp->SetRelativeRotation ( FRotator ( 0 , 90 , -90 ) );
+	//MeshComp->SetRelativeScale3D ( FVector ( 0.1 ) );
+
+	//// 2
+	//MeshComp->SetRelativeTransform ( FTransform ( FQuat ( FRotator ( 0 , 90 , -90 ) ) ,
+	//					FVector ( -130 , 0 , 20 ) ,
+	//						FVector ( 0.1 ) ) );
+
+	// 3
+	MeshComp->SetRelativeLocationAndRotation ( FVector ( -130 , 0 , 20 ) , FRotator ( 0 , 90 , -90 ) );
+	MeshComp->SetRelativeScale3D ( FVector ( 0.1 ) );
+
 	// 오버랩 이벤트 활성화
 	BoxComp->SetGenerateOverlapEvents ( true );
 	// 충돌 응답을 Query and Physics로 설정
@@ -59,7 +75,7 @@ void AMyPlayerPawn::BeginPlay ( )
 	if (GM)
 	{
 		GM->SetHP ( HP , MaxHP );
-		GM->ShowGameOver(false);
+		GM->ShowGameOver ( false );
 	}
 
 	//// 게임을 진행 상태로 만든다.
@@ -70,6 +86,18 @@ void AMyPlayerPawn::BeginPlay ( )
 	//	pc->SetShowMouseCursor ( false ); // 마우스 커서를 숨긴다.
 	//	pc->SetInputMode(FInputModeGameOnly()); // Input Mode 설정
 	//}
+
+	for (int32 i = 0;i < MaxBulletCount;++i)
+	{
+		// 스폰할 객체의 대한 스폰 옵션을 설정하는 구조체
+		FActorSpawnParameters params;
+		// 스폰 과정에 충돌이 발생해도 스폰을 강제로 진행한다.
+		params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ABulletActor* bullet = GetWorld ( )->SpawnActor<ABulletActor> ( BulletFactory , params );
+		bullet->SetActive ( false );
+		Magazine.Add ( bullet );
+	}
 }
 
 // Called every frame
@@ -89,6 +117,17 @@ void AMyPlayerPawn::Tick ( float DeltaTime )
 	FVector velocity = dir * Speed;
 	FVector p = p0 + velocity * DeltaTime;
 	SetActorLocation ( p );
+
+	if (AutoFire)
+	{
+		CurrentTime += DeltaTime;
+
+		if (CurrentTime >= FireTime)
+		{
+			SetBulletTransform();
+			CurrentTime = 0.0f;
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -101,7 +140,11 @@ void AMyPlayerPawn::SetupPlayerInputComponent ( UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAxis ( TEXT ( "Vertical" ) , this , &AMyPlayerPawn::OnAxisVertical );
 
 	// Fire함수 바인딩
-	PlayerInputComponent->BindAction ( TEXT ( "Fire" ) , IE_Pressed , this , &AMyPlayerPawn::OnActionFire );
+	//PlayerInputComponent->BindAction ( TEXT ( "Fire" ) , IE_Pressed , this , &AMyPlayerPawn::OnActionFire );
+	PlayerInputComponent->BindAction ( TEXT ( "Fire" ) , IE_Pressed , this , &AMyPlayerPawn::OnActionAutoFire_Hold );
+	PlayerInputComponent->BindAction ( TEXT ( "Fire" ) , IE_Released , this , &AMyPlayerPawn::OnActionAutoFire_Hold );
+
+	PlayerInputComponent->BindAction ( TEXT ( "AutoFire_1" ) , IE_Pressed , this , &AMyPlayerPawn::OnActionAutoFire );
 }
 
 void AMyPlayerPawn::OnAxisHorizontal ( float value )
@@ -118,13 +161,7 @@ void AMyPlayerPawn::OnAxisVertical ( float value )
 
 void AMyPlayerPawn::OnActionFire ( )
 {
-	// 마우스를 클릭하면 총알을 생성하고 싶다.
-
-	// ArrowComponent의 Transform 값을 가져온다.
-	FTransform FirePos = ArrowComp->GetComponentTransform ( );
-
-	// FirePos 정보로 ABulletActor를 생성한다.
-	GetWorld ( )->SpawnActor<ABulletActor> ( BulletFactory , FirePos );
+	SetBulletTransform ( );
 }
 
 void AMyPlayerPawn::SetDamage ( int32 damage )
@@ -135,5 +172,42 @@ void AMyPlayerPawn::SetDamage ( int32 damage )
 		// HpBar 갱신
 		GM->SetHP ( HP , MaxHP );
 	}
+}
+
+void AMyPlayerPawn::SetBulletTransform ( )
+{
+	// ArrowComponent의 Transform 값을 가져온다.
+	FTransform FirePos = ArrowComp->GetComponentTransform ( );
+
+	for (int32 i = 0;i < Magazine.Num ( );++i)
+	{
+		if (!Magazine[i]->MeshComp->GetVisibleFlag ( ))
+		{
+			FirePos.SetScale3D ( Magazine[i]->MeshComp->GetComponentScale ( ) );
+
+			// 총알을 활성화하고 총구 위치에 이동시킨다.
+			Magazine[i]->SetActive ( true );
+			Magazine[i]->SetActorTransform ( FirePos );
+
+			// 총알 발사 사운드 재생
+			UGameplayStatics::SpawnSound2D ( GetWorld ( ) , FireSound );
+
+			break;
+		}
+	}
+}
+
+void AMyPlayerPawn::OnActionAutoFire ( )
+{
+	AutoFire = !AutoFire;
+	CurrentTime = 0.0f;
+}
+
+void AMyPlayerPawn::OnActionAutoFire_Hold()
+{
+	AutoFire = !AutoFire;
+
+	if (AutoFire)
+		CurrentTime = FireTime;
 }
 

@@ -3,12 +3,13 @@
 
 #include "DeadZone.h"
 
+#include "BulletActor.h"
 #include "Components/BoxComponent.h"
 
 // Sets default values
-ADeadZone::ADeadZone()
+ADeadZone::ADeadZone ( )
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// 충돌체 컴포넌트를 추가해서 Root 컴포넌트로 설정
@@ -38,22 +39,27 @@ ADeadZone::ADeadZone()
 }
 
 // Called when the game starts or when spawned
-void ADeadZone::BeginPlay()
+void ADeadZone::BeginPlay ( )
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay ( );
+
 }
 
 // Called every frame
-void ADeadZone::Tick(float DeltaTime)
+void ADeadZone::Tick ( float DeltaTime )
 {
-	Super::Tick(DeltaTime);
+	Super::Tick ( DeltaTime );
 
 }
 
-void ADeadZone::OnDeadZoneOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ADeadZone::OnDeadZoneOverlap ( UPrimitiveComponent* OverlappedComponent , AActor* OtherActor ,
+	UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult )
 {
-	OtherActor->Destroy();
+	ABulletActor* bullet = Cast<ABulletActor> ( OtherActor );
+
+	if (bullet)
+		bullet->SetActive ( false );
+	else
+		OtherActor->Destroy ( );
 }
 

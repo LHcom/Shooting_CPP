@@ -42,4 +42,12 @@ public:
 							int32 OtherBodyIndex ,
 							bool bFromSweep ,
 							const FHitResult& SweepResult );
+
+	UPROPERTY(EditAnywhere, Category = "Default|Sound")
+	USoundBase* EnemyDestroySound;
+
+	UPROPERTY(EditAnywhere, Category = "Default|Effect")
+	UParticleSystem* EnemyDestroyEffect;
+
+	void SetActive(bool isActive);
 };
